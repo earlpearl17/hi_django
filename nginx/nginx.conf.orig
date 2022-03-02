@@ -5,12 +5,22 @@ upstream hi_django {
 server {
 
     listen 80;
+    #server_name 3.14.141.61;
+    server_name django1.liamsirkett.com;
 
     location / {
         proxy_pass http://hi_django;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $host;
         proxy_redirect off;
+    }
+
+    location /static/ {
+        alias /home/app/web/staticfiles/;
+    }
+
+    location /media/ {
+        alias /home/app/web/mediafiles/;
     }
 
 }
