@@ -5,7 +5,6 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile.prod
-    image: 726269074268.dkr.ecr.us-east-2.amazonaws.com/django-ec2:web
     command: gunicorn hi_django.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - static_volume:/home/app/web/staticfiles
@@ -13,11 +12,18 @@ services:
     expose:
       - 8000
     env_file:
-      - ./.env.staging
+      - ./.env.prod
+    depends_on:
+      - db
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.prod.db
   nginx-proxy:
     container_name: nginx-proxy
     build: nginx
-    image: 726269074268.dkr.ecr.us-east-2.amazonaws.com/django-ec2:nginx-proxy
     restart: always
     ports:
       - 443:443
@@ -34,7 +40,7 @@ services:
   nginx-proxy-letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
     env_file:
-      - ./.env.staging.proxy-companion
+      - ./.env.prod.proxy-companion
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - certs:/etc/nginx/certs
@@ -45,6 +51,7 @@ services:
       - nginx-proxy
 
 volumes:
+  postgres_data:
   static_volume:
   media_volume:
   certs:
